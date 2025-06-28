@@ -16,7 +16,7 @@ A Python script for downloading Guitar Pro tabs from Ultimate Guitar with full a
 
 ### 1. Install Dependencies
 
-#### Using nix-shell (recommended):
+#### Using nix-shell:
 ```bash
 nix-shell  # Uses shell.nix for automatic environment setup
 ```
@@ -25,6 +25,8 @@ nix-shell  # Uses shell.nix for automatic environment setup
 ```bash
 pip install httpx
 ```
+
+#### Otherwise use your preferred setup
 
 ### 2. Setup Authentication (Required)
 
@@ -331,3 +333,6 @@ For debugging in VS Code, copy the launch configuration:
 
 ```bash
 cp .vscode/launch.json.template .vscode/launch.json
+```
+
+If you're on Nix, then I recommend installing extension for VS Code - https://github.com/arrterian/nix-env-selector, it allows to make VS Code aware of nix-shell and thus be able to do debugging and etc.
