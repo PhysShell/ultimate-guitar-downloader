@@ -2,41 +2,41 @@
 
 pkgs.mkShell {
   buildInputs = with pkgs; [
-    # Python и основные пакеты
+    # Python and core packages
     python311
     python311Packages.pip
     python311Packages.setuptools
     python311Packages.wheel
     
-    # Основные зависимости проекта
+    # Main project dependencies
     python311Packages.httpx
     
-    # Инструменты для отладки и разработки
-    python311Packages.ipdb      # улучшенный отладчик
-    python311Packages.pudb      # полнофункциональный визуальный отладчик
-    python311Packages.icecream  # удобная библиотека для отладочного вывода
+    # Debugging and development tools
+    python311Packages.ipdb      # enhanced debugger
+    python311Packages.pudb      # full-featured visual debugger
+    python311Packages.icecream  # convenient library for debug output
     
-    # Инструменты для тестирования
+    # Testing tools
     python311Packages.pytest
     python311Packages.pytest-cov
     
-    # Линтеры и форматеры кода
-    python311Packages.black     # форматер кода
-    python311Packages.flake8    # линтер
-    python311Packages.mypy      # проверка типов
-    python311Packages.isort     # сортировка импортов
+    # Code linters and formatters
+    python311Packages.black     # code formatter
+    python311Packages.flake8    # linter
+    python311Packages.mypy      # type checking
+    python311Packages.isort     # import sorting
     
-    # Полезные инструменты для разработки
-    python311Packages.requests  # может пригодиться как альтернатива httpx
-    python311Packages.beautifulsoup4  # для парсинга HTML
-    python311Packages.lxml      # быстрый XML/HTML парсер
+    # Useful development tools
+    python311Packages.requests  # might be useful as httpx alternative
+    python311Packages.beautifulsoup4  # for HTML parsing
+    python311Packages.lxml      # fast XML/HTML parser
     
-    # Системные инструменты
-    curl                        # для тестирования HTTP запросов
-    jq                          # для работы с JSON
-    tree                        # для просмотра структуры директорий
+    # System tools
+    curl                        # for testing HTTP requests
+    jq                          # for working with JSON
+    tree                        # for viewing directory structure
     
-    # Git (если не установлен системно)
+    # Git (if not installed system-wide)
     git
   ];
 
@@ -45,53 +45,43 @@ pkgs.mkShell {
     echo "===================================================="
     echo "Python version: $(python --version)"
     echo "Available commands:"
-    echo "  python main.py --help          # Показать справку"
-    echo "  python extract_cookies.py      # Интерактивное создание cookies"
-    echo "  python main.py --help-cookies  # Помощь с cookies"
-    echo "  python main.py --test-cookies cookies.json  # Тест cookies"
+    echo "  python main.py --help          # Show help"
+    echo "  python extract_cookies.py      # Interactive cookies creation"
+    echo "  python main.py --help-cookies  # Cookies help"
+    echo "  python main.py --test-cookies cookies.json  # Test cookies"
     echo ""
-    echo "Отладка:"
-    echo "  pudb                           # Визуальный отладчик"
-    echo "  python -m ipdb script.py       # ipdb отладчик"
-    echo "  python -c 'import icecream; icecream.install()'  # ic() для отладки"
+    echo "Debugging:"
+    echo "  pudb                           # Visual debugger"
+    echo "  python -m ipdb script.py       # ipdb debugger"
+    echo "  python -c 'import icecream; icecream.install()'  # ic() for debugging"
     echo ""
-    echo "Качество кода:"
-    echo "  black *.py                     # Форматирование кода"
-    echo "  flake8 *.py                    # Проверка стиля"
-    echo "  mypy *.py                      # Проверка типов"
-    echo "  isort *.py                     # Сортировка импортов"
+    echo "Code quality:"
+    echo "  black *.py                     # Code formatting"
+    echo "  flake8 *.py                    # Style checking"
+    echo "  mypy *.py                      # Type checking"
+    echo "  isort *.py                     # Import sorting"
     echo ""
-    echo "Тестирование:"
-    echo "  pytest                         # Запуск тестов"
-    echo "  curl -s 'https://www.ultimate-guitar.com' | head  # Тест подключения"
+    echo "Testing:"
+    echo "  pytest                         # Run tests"
+    echo "  curl -s 'https://www.ultimate-guitar.com' | head  # Test connection"
     echo ""
     
-    # Настройка переменных окружения для отладки
+    # Set environment variables for debugging
     export PYTHONPATH="$PWD:$PYTHONPATH"
-    export PYTHONDONTWRITEBYTECODE=1  # Не создавать .pyc файлы
-    export PYTHONUNBUFFERED=1         # Небуферизованный вывод
+    export PYTHONDONTWRITEBYTECODE=1  # Don't create .pyc files
+    export PYTHONUNBUFFERED=1         # Unbuffered output
     
-    # Создание необходимых директорий
+    # Create necessary directories
     mkdir -p output
     
-    # Информация о проекте
+    # Project information
     if [ -f "README.md" ]; then
-      echo "📖 Документация доступна в README.md и QUICK_START.md"
+      echo "📖 Documentation available in README.md"
     fi
-    
-    if [ ! -f "cookies.json" ] && [ ! -f "cookies_sample.json" ]; then
-      echo "⚠️  Не найден файл cookies. Создайте его командой:"
-      echo "   python extract_cookies.py"
-      echo "   или"
-      echo "   python main.py --create-cookies-template"
-    fi
-    echo ""
   '';
 
-  # Настройки для отладки в VS Code
-  # Если используете VS Code, эти переменные помогут с интеграцией
-  PYTHON_CONFIGURE_OPTS = "--enable-shared";
-  
-  # Для лучшей интеграции с debugger
+  # Settings for VS Code debugging
+  # If using VS Code, these variables will help with integration
+  PYTHON_CONFIGURE_OPTS = "--enable-shared";      # For better debugger integration
   NIX_SHELL_PRESERVE_PROMPT = 1;
-} 
+}

@@ -1,5 +1,6 @@
 # VSCODE
 launch.json
+settings.json
 
 # VENV
 Scripts/
@@ -160,11 +161,10 @@ cython_debug/
 
 # Ultimate Guitar Downloader specific
 debug_cookies.json
+cookies.json
 output/
 
-# Debug and temporary files
-headers.txt
-text.txt
+*.txt
 
 # Development files
 *.pyc

@@ -1,0 +1,32 @@
+{
+    "python.defaultInterpreterPath": "./result/bin/python",
+    "python.linting.enabled": true,
+    "python.linting.flake8Enabled": true,
+    "python.linting.mypyEnabled": true,
+    "python.formatting.provider": "black",
+    "python.sortImports.args": [
+        "--profile",
+        "black"
+    ],
+    "python.terminal.activateEnvironment": false,
+    "python.analysis.typeCheckingMode": "basic",
+    "files.watcherExclude": {
+        "**/output/**": true,
+        "**/__pycache__/**": true
+    },
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+        "source.organizeImports": "explicit"
+    },
+    "[python]": {
+        "editor.tabSize": 4,
+        "editor.insertSpaces": true,
+        "editor.defaultFormatter": "ms-python.black-formatter"
+    },
+    "terminal.integrated.env.linux": {
+        "PYTHONPATH": "${workspaceFolder}",
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "PYTHONUNBUFFERED": "1"
+    },
+    "nixEnvSelector.nixFile": "${workspaceFolder}/shell.nix"
+}

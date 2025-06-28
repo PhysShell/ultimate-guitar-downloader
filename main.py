@@ -6,7 +6,17 @@ import re
 import os
 import json
 import html
+import random
+import time
+import secrets
 from urllib.parse import unquote
+
+# Import our scraper module
+try:
+    from scraper import UGArtistScraper
+except ImportError:
+    UGArtistScraper = None
+    print("⚠️  Warning: scraper.py not found. Artist scraping functionality disabled.")
 
 class UGDownloader:
     def __init__(self, cookies_file: Optional[str] = None):
@@ -170,7 +180,6 @@ class UGDownloader:
                     
                     if unified_id == '0':
                         print("❌ Download failed: You appear to be anonymous")
-                        print("💡 Try running: python debug_auth.py cookies.json")
                     
                     return False
                 
@@ -216,6 +225,74 @@ def get_urls(input_file: str) -> List[str]:
             if url:
                 urls.append(url)
     return urls
+
+def generate_random_cookies_file():
+    """
+    Generate a cookies.json file with realistic random values matching UG patterns
+    """
+    def generate_hex_string(length):
+        """Generate random hex string of specified length"""
+        return secrets.token_hex(length // 2)
+    
+    def generate_session_hash():
+        """Generate random session hash similar to bbsessionhash"""
+        chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_'
+        return ''.join(random.choice(chars) for _ in range(32))
+    
+    def generate_timestamp():
+        """Generate realistic timestamp"""
+        return int(time.time()) - random.randint(0, 86400)  # Within last 24 hours
+    
+    def generate_user_id():
+        """Generate random user ID"""
+        return str(random.randint(1000000, 9999999))
+    
+    def generate_ga_id():
+        """Generate Google Analytics ID"""
+        timestamp = generate_timestamp()
+        number = random.randint(1000000000, 9999999999)
+        return f"GA1.1.{number}.{timestamp}"
+    
+    def generate_session_id():
+        """Generate _ug_session_id format: 1.timestamp.timestamp.number"""
+        ts1 = generate_timestamp()
+        ts2 = ts1 + random.randint(1, 3600)  # ts2 is after ts1
+        num = random.randint(1, 5)
+        return f"1.{ts1}.{ts2}.{num}"
+    
+    def generate_unified_id():
+        """Generate ug_unified_id format: 1.timestamp.number"""
+        timestamp = generate_timestamp()
+        number = random.randint(100000000, 999999999)
+        return f"1.{timestamp}.{number}"
+    
+    # Generate realistic random cookies
+    random_cookies = {
+        "UGSESSION": generate_hex_string(32),
+        "SESSIONUG": generate_hex_string(32),
+        "_ug_session_id": generate_session_id(),
+        "bbsessionhash": generate_session_hash(),
+        "_pro_buySession": generate_hex_string(32),
+        "ug_auth_provider": random.choice(["google", "facebook", "apple", "email"]),
+        "ug_unified_id": generate_unified_id(),
+        "bbuserid": generate_user_id(),
+        "bbpassword": generate_hex_string(32),
+        "_ga": generate_ga_id()
+    }
+    
+    filename = 'cookies.json'
+    with open(filename, 'w') as f:
+        json.dump(random_cookies, f, indent=2)
+    
+    print(f"✅ Generated {filename} with realistic random cookie values")
+    print("⚠️  WARNING: These are random values and will NOT work for actual authentication!")
+    print("💡 Use this file as a template - replace values with real cookies from your browser")
+    print("\n📋 To get real cookies:")
+    print("1. Go to https://www.ultimate-guitar.com in your browser")
+    print("2. Log in to your account")
+    print("3. Open Developer Tools (F12)")
+    print("4. Go to Application > Cookies > https://www.ultimate-guitar.com")
+    print("5. Copy the real values to replace the random ones")
 
 def create_sample_cookies_file():
     """
@@ -330,10 +407,16 @@ def get_parser() -> ArgumentParser:
     Get argument parser
     """
     parser = ArgumentParser(description='Download tabs from Ultimate Guitar')
-    parser.add_argument('input', nargs='?', help='Input file with tab URLs (one per line)')
+    parser.add_argument('input', nargs='?', help='Input file with tab URLs (one per line) OR artist URL for scraping')
     parser.add_argument('--cookies', '-c', help='Path to cookies JSON file')
+    parser.add_argument('--scrape-artist', action='store_true',
+                       help='Scrape all Guitar Pro tabs from artist page URL (instead of downloading from file)')
+    parser.add_argument('--output-scraped', default='in_scraped.txt',
+                       help='Output file for scraped URLs (default: in_scraped.txt)')
     parser.add_argument('--create-cookies-template', action='store_true', 
                        help='Create a template cookies file')
+    parser.add_argument('--generate-cookies', action='store_true',
+                       help='Generate cookies.json with realistic random values (for template use)')
     parser.add_argument('--help-cookies', action='store_true',
                        help='Show detailed instructions for getting cookies')
     parser.add_argument('--test-cookies', help='Test if cookies file works')
@@ -347,6 +430,10 @@ if __name__ == '__main__':
         create_sample_cookies_file()
         exit(0)
     
+    if args.generate_cookies:
+        generate_random_cookies_file()
+        exit(0)
+    
     if args.help_cookies:
         create_cookies_from_browser_export()
         exit(0)
@@ -357,9 +444,75 @@ if __name__ == '__main__':
         exit(0)
     
     if not args.input:
-        print("Error: Input file is required")
+        print("Error: Input file or artist URL is required")
         parser.print_help()
         exit(1)
+    
+    # Check if we're in scraping mode
+    if args.scrape_artist:
+        if UGArtistScraper is None:
+            print("❌ Error: scraper.py module not found!")
+            print("💡 Make sure scraper.py is in the same directory as main.py")
+            exit(1)
+        
+        print("🎸 ARTIST SCRAPING MODE")
+        print("=" * 50)
+        
+        # Initialize scraper
+        scraper = UGArtistScraper(args.cookies)
+        
+        # Scrape tabs from artist page
+        tab_urls = scraper.scrape_artist_tabs(args.input, args.output_scraped)
+        
+        if not tab_urls:
+            print("😞 No Guitar Pro tabs found for this artist!")
+            exit(1)
+        
+        print(f"\n🎉 Successfully scraped {len(tab_urls)} Guitar Pro tabs!")
+        print(f"📁 URLs saved to: {args.output_scraped}")
+        
+        # Ask if user wants to download immediately
+        print(f"\n💡 Would you like to download all {len(tab_urls)} tabs now? (y/n): ", end="")
+        try:
+            user_input = input().strip().lower()
+            if user_input in ['y', 'yes', 'да', 'д']:
+                print("\n🚀 Starting download process...")
+                
+                # Initialize downloader and download all tabs
+                downloader = UGDownloader(args.cookies)
+                success_count = 0
+                failed_urls = []
+                
+                for i, url in enumerate(sorted(tab_urls), 1):
+                    print(f"\n[{i}/{len(tab_urls)}] Processing: {url}")
+                    
+                    if downloader.download_tab(url):
+                        success_count += 1
+                    else:
+                        failed_urls.append(url)
+                
+                # Summary
+                print(f"\n=== DOWNLOAD SUMMARY ===")
+                print(f"Successfully downloaded: {success_count}/{len(tab_urls)}")
+                
+                if failed_urls:
+                    print(f"Failed downloads: {len(failed_urls)}")
+                    print("💡 You can retry failed downloads using the saved file:")
+                    print(f"   python main.py {args.output_scraped} --cookies {args.cookies or 'your_cookies.json'}")
+            else:
+                print(f"\n📋 URLs saved to {args.output_scraped}")
+                print(f"💡 To download later, run:")
+                print(f"   python main.py {args.output_scraped} --cookies {args.cookies or 'your_cookies.json'}")
+        except KeyboardInterrupt:
+            print(f"\n\n📋 URLs saved to {args.output_scraped}")
+            print(f"💡 To download later, run:")
+            print(f"   python main.py {args.output_scraped} --cookies {args.cookies or 'your_cookies.json'}")
+        
+        exit(0)
+    
+    # Normal download mode
+    print("📥 TAB DOWNLOAD MODE")
+    print("=" * 50)
     
     # Initialize downloader
     downloader = UGDownloader(args.cookies)
@@ -386,7 +539,7 @@ if __name__ == '__main__':
             failed_urls.append(url)
     
     # Summary
-    print(f"\n=== Summary ===")
+    print(f"\n=== DOWNLOAD SUMMARY ===")
     print(f"Successfully downloaded: {success_count}/{len(urls)}")
     
     if failed_urls:
